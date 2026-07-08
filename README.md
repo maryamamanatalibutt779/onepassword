@@ -1,3 +1,30 @@
+One Password 
+
+A web-based password manager that lets users securely store, manage, and retrieve their passwords in one place. Built with Next.js and Supabase for authentication and encrypted data storage.
+
+### 3. Set up Supabase
+
+This project needs a Supabase project to handle authentication.
+
+1. Go to supabase.com and sign in (or create a free account).
+2. Click New Project, give it a name, set a database password, and choose a region.
+3. Once the project is created, go to Project Settings → API.
+4. You'll need two values from that page:
+   - Project URL
+   - anon public API key
+
+   
+Copy the example env file:
+
+bashcp .env.example .env.local
+
+Open .env.local and fill in the values you copied from Supabase:
+
+bashNEXT_PUBLIC_SUPABASE_URL=your_project_url_here
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key_here
+
+
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
