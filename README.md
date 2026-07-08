@@ -22,8 +22,7 @@ Open .env.local and fill in the values you copied from Supabase:
 
 bashNEXT_PUBLIC_SUPABASE_URL=your_project_url_here
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key_here
-
-
+and this also ENCRYPTION_SECRET_KEY (you will generate your own)
 
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
