@@ -35,7 +35,7 @@ export async function POST(request) {
 
     return NextResponse.json(
       { 
-        message: 'Signup successful! Please check your email to verify your account if email confirmation is enabled.',
+        message: 'Signup successful!',
         user: data.user,
         session: data.session
       },
