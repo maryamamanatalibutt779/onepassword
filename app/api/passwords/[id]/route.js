@@ -11,7 +11,7 @@ export async function GET(request, { params }) {
     }
 
     const supabase = createAuthedClient(token);
-    const { id } = await params; // params is a Promise in Next.js 15+
+    const { id } = await params;
 
     const { data, error } = await supabase
       .from('passwords')
@@ -31,6 +31,7 @@ export async function GET(request, { params }) {
           site_url: data.site_url,
           username: data.username,
           password: decryptPassword(data.encrypted_password, data.iv),
+          tag: data.tag || 'Personal',
           created_at: data.created_at,
           updated_at: data.updated_at,
         },
@@ -55,11 +56,11 @@ export async function PUT(request, { params }) {
     }
 
     const supabase = createAuthedClient(token);
-    const { id } = await params; // params is a Promise in Next.js 15+
+    const { id } = await params;
 
-    const { site_name, site_url, username, password } = await request.json();
+    const { site_name, site_url, username, password, tag } = await request.json();
 
-    if (!site_name && !username && !password) {
+    if (!site_name && !username && !password && !tag) {
       return NextResponse.json(
         { error: 'Provide at least one field to update.' },
         { status: 400 }
@@ -71,6 +72,7 @@ export async function PUT(request, { params }) {
     if (site_name) updates.site_name = site_name;
     if (site_url !== undefined) updates.site_url = site_url;
     if (username) updates.username = username;
+    if (tag) updates.tag = tag;
     if (password) {
       const { encryptedPassword, iv } = encryptPassword(password);
       updates.encrypted_password = encryptedPassword;
@@ -96,6 +98,7 @@ export async function PUT(request, { params }) {
           site_name: data.site_name,
           site_url: data.site_url,
           username: data.username,
+          tag: data.tag,
           updated_at: data.updated_at,
         },
       },
@@ -119,7 +122,7 @@ export async function DELETE(request, { params }) {
     }
 
     const supabase = createAuthedClient(token);
-    const { id } = await params; // params is a Promise in Next.js 15+
+    const { id } = await params;
 
     const { error } = await supabase.from('passwords').delete().eq('id', id);
 

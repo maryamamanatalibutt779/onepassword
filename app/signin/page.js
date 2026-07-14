@@ -12,9 +12,13 @@ export default function SigninPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
+  const [submitted, setSubmitted] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitted(true);
+    if (!email || !password) return;
+
     setError(null);
     setSuccess(null);
     setLoading(true);
@@ -28,26 +32,34 @@ export default function SigninPage() {
         body: JSON.stringify({ email, password }),
       });
 
-      const data = await response.json();
+      let data = null;
+      let parseError = null;
+
+      try {
+        data = await response.json();
+      } catch (err) {
+        parseError = err;
+      }
 
       if (!response.ok) {
-        setError(data.error || 'Invalid credentials.');
+        const message = data?.error || 'Invalid credentials.';
+        setError(message);
+      } else if (parseError || !data) {
+        setError('The sign-in response was invalid. Please try again.');
       } else {
         setSuccess('Login successful! Redirecting...');
-        
-        // Sync local Supabase client session if session data is present
+
         if (data.session) {
           const { error: sessionError } = await supabase.auth.setSession({
             access_token: data.session.access_token,
             refresh_token: data.session.refresh_token,
           });
-          
+
           if (sessionError) {
             console.error('Session sync error:', sessionError.message);
           }
         }
 
-        // Redirect to dashboard after a short delay to display success state
         setTimeout(() => {
           router.push('/dashboard');
           router.refresh();
@@ -62,23 +74,53 @@ export default function SigninPage() {
   };
 
   return (
-    <div className="auth-wrapper">
-      <div className="auth-card">
-        <header className="auth-header">
-          <div className="logo-wrapper">
-            <span className="logo-icon">One Password</span>
+    <div className="split-layout">
+      {/* ── LEFT PANEL ── */}
+      <div className="split-left">
+        <span className="split-brand">LockBox</span>
+
+        <div className="preview-card">
+          {/* coloured dots mimicking the reference card accent */}
+          <div className="preview-dots">
+            <span className="dot dot-green" />
+            <span className="dot dot-yellow" />
+            <span className="dot dot-red" />
           </div>
-          <h1 className="auth-title">Sign In</h1>
-          <p className="auth-subtitle">Welcome back! Sign in to access your vault</p>
-        </header>
 
-        {error && <div className="status-msg error" id="signin-error">{error}</div>}
-        {success && <div className="status-msg success" id="signin-success">{success}</div>}
+          <h2 className="preview-title">Welcome back.</h2>
+          <p className="preview-body">
+            Your passwords, secured and always within reach — protected the
+            right way, shared your way.
+          </p>
 
-        <form className="auth-form" onSubmit={handleSubmit} id="signin-form">
-          <div className="form-group">
-            <label className="form-label" htmlFor="email">Email Address</label>
-            <div className="input-container">
+          <div className="preview-divider" />
+          <span className="preview-hint">Sign in to continue</span>
+        </div>
+
+        <p className="split-tagline">New here? Your vault is waiting to be set up.</p>
+      </div>
+
+      {/* ── RIGHT PANEL ── */}
+      <div className="split-right">
+        <div className="form-panel">
+          <h1 className="form-heading">Sign in to LockBox.</h1>
+
+          {error && (
+            <div className="status-msg error" id="signin-error">
+              {error}
+            </div>
+          )}
+          {success && (
+            <div className="status-msg success" id="signin-success" style={{ color: '#000000' }}>
+              {success}
+            </div>
+          )}
+
+          <form className="auth-form" onSubmit={handleSubmit} id="signin-form" noValidate>
+            <div className="form-group">
+              <label className="form-label" htmlFor="email">
+                EMAIL
+              </label>
               <input
                 id="email"
                 type="email"
@@ -86,35 +128,44 @@ export default function SigninPage() {
                 placeholder="name@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                required
+                style={submitted && !email ? { borderColor: 'red' } : {}}
               />
+              {submitted && !email && <div style={{ color: 'red', fontSize: '0.75rem', marginTop: '6px' }}>This field is missing</div>}
             </div>
-          </div>
 
-          <div className="form-group">
-            <label className="form-label" htmlFor="password">Password</label>
-            <div className="input-container">
+            <div className="form-group">
+              <label className="form-label" htmlFor="password">
+                PASSWORD
+              </label>
               <input
                 id="password"
                 type="password"
                 className="form-input"
-                placeholder="••••••••"
+                placeholder="At least 6 characters"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                required
+                style={submitted && !password ? { borderColor: 'red' } : {}}
               />
+              {submitted && !password && <div style={{ color: 'red', fontSize: '0.75rem', marginTop: '6px' }}>This field is missing</div>}
             </div>
-          </div>
 
-          <button className="btn-submit" type="submit" disabled={loading} id="btn-signin-submit">
-            {loading ? <div className="spinner"></div> : 'Sign In'}
-          </button>
-        </form>
+            <button
+              className="btn-submit"
+              type="submit"
+              disabled={loading}
+              id="btn-signin-submit"
+            >
+              {loading ? <div className="spinner" /> : 'Sign in'}
+            </button>
+          </form>
 
-        <p className="auth-footer">
-          Don't have an account? 
-          <Link href="/signup" className="auth-link" id="link-goto-signup">Sign Up</Link>
-        </p>
+          <p className="auth-footer">
+            New to LockBox?{' '}
+            <Link href="/signup" className="auth-link" id="link-goto-signup">
+              Create an account
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );

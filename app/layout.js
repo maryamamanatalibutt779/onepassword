@@ -12,7 +12,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "One Password - Secure Password Manager",
+  title: "LockBox - Secure Password Manager",
   description: "A sleek, modern, and secure platform to store and manage your credentials safely.",
 };
 

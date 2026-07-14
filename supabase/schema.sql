@@ -12,6 +12,7 @@ create table if not exists public.passwords (
   username text not null,
   encrypted_password text not null,
   iv text not null,
+  tag text not null default 'Personal',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );

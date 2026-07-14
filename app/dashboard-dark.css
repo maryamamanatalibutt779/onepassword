@@ -1,0 +1,74 @@
+/* ── LockBox Dashboard Dark Mode ── */
+[data-theme='dark'] body,
+[data-theme='dark'] html {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+/* Main page wrapper */
+[data-theme='dark'] .dashboard-page {
+  background: #000000 !important;
+}
+
+/* Navbar */
+[data-theme='dark'] .dashboard-header {
+  background: #000000 !important;
+  border-bottom-color: #333333 !important;
+}
+
+[data-theme='dark'] .dashboard-logo-text {
+  color: #ffffff !important;
+}
+
+[data-theme='dark'] .dashboard-signout {
+  color: #ffffff !important;
+}
+
+/* Search bar */
+[data-theme='dark'] .dashboard-search-bar {
+  background: #1a1a1a !important;
+  border-color: #333333 !important;
+}
+
+[data-theme='dark'] .dashboard-search-bar input {
+  color: #ffffff !important;
+}
+
+/* Filter row */
+[data-theme='dark'] .dashboard-filter-row {
+  border-bottom-color: #333333 !important;
+}
+
+/* Cards */
+[data-theme='dark'] .dashboard-card-bg {
+  background: #1a1a1a !important;
+  border-color: #333333 !important;
+}
+
+/* Sidebar boxes */
+[data-theme='dark'] .dashboard-sidebar-box {
+  background: #1a1a1a !important;
+  border-color: #333333 !important;
+}
+
+/* All text in dark mode */
+[data-theme='dark'] h2,
+[data-theme='dark'] h3,
+[data-theme='dark'] h4,
+[data-theme='dark'] p,
+[data-theme='dark'] span:not([title]) {
+  color: #ffffff !important;
+}
+
+/* Empty vault box */
+[data-theme='dark'] .dashboard-empty-box {
+  background: #1a1a1a !important;
+  border-color: #444444 !important;
+}
+
+/* Add password button */
+[data-theme='dark'] .dashboard-add-btn {
+  background: #1a1a1a !important;
+  color: #ffffff !important;
+  border-color: #444444 !important;
+}

@@ -28,6 +28,7 @@ export async function GET(request) {
       site_url: entry.site_url,
       username: entry.username,
       password: decryptPassword(entry.encrypted_password, entry.iv),
+      tag: entry.tag || 'Personal',
       created_at: entry.created_at,
       updated_at: entry.updated_at,
     }));
@@ -61,7 +62,7 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Not authenticated.' }, { status: 401 });
     }
 
-    const { site_name, site_url, username, password } = await request.json();
+    const { site_name, site_url, username, password, tag } = await request.json();
 
     if (!site_name || !username || !password) {
       return NextResponse.json(
@@ -81,6 +82,7 @@ export async function POST(request) {
         username,
         encrypted_password: encryptedPassword,
         iv,
+        tag: tag || 'Personal',
       })
       .select()
       .single();
@@ -97,6 +99,7 @@ export async function POST(request) {
           site_name: data.site_name,
           site_url: data.site_url,
           username: data.username,
+          tag: data.tag,
           created_at: data.created_at,
         },
       },
