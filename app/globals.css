@@ -763,4 +763,38 @@ html:not([data-theme='dark']) [role="dialog"] select.form-input option {
   .dashboard-grid {
     grid-template-columns: 1fr !important;
   }
+
+  /* Slide panel full-width on mobile */
+  .slide-panel {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+}
+
+/* ── Slide-in panel animation ───────────────────────── */
+@keyframes slide-in-from-right {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fade-in-backdrop {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

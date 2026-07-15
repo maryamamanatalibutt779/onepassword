@@ -13,8 +13,118 @@ async function getAuthHeader() {
   return { Authorization: `Bearer ${session.access_token}` };
 }
 
-/* ─── Modal Component ─────────────────────────────────────────────── */
-function Modal({ title, onClose, children, theme }) {
+/* ─── Slide Panel (slides in from right) ──────────────────────────── */
+function SlidePanel({ title, onClose, children, theme }) {
+  const isDark = theme === 'dark';
+  const panelBg = isDark ? '#0d101b' : '#ffffff';
+  const panelBorder = isDark ? 'rgba(255,255,255,0.08)' : '#e5e7eb';
+  const titleColor = isDark ? '#ffffff' : '#1a1a1a';
+  const closeColor = isDark ? 'rgba(255,255,255,0.5)' : '#6b7280';
+  const dividerColor = isDark ? 'rgba(255,255,255,0.08)' : '#f0f0f0';
+
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 1000,
+        display: 'flex',
+        justifyContent: 'flex-end',
+        animation: 'fade-in-backdrop 0.25s ease forwards',
+      }}
+      onClick={onClose}
+    >
+      {/* Blurred dark backdrop on the right side */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          background: 'rgba(0,0,0,0.55)',
+          backdropFilter: 'blur(6px)',
+          WebkitBackdropFilter: 'blur(6px)',
+        }}
+      />
+
+      {/* The panel itself */}
+      <div
+        className="slide-panel"
+        style={{
+          position: 'relative',
+          zIndex: 1,
+          width: '420px',
+          maxWidth: '90vw',
+          height: '100%',
+          background: panelBg,
+          borderLeft: `1px solid ${panelBorder}`,
+          display: 'flex',
+          flexDirection: 'column',
+          boxShadow: isDark
+            ? '-8px 0 40px rgba(0,0,0,0.7)'
+            : '-8px 0 40px rgba(0,0,0,0.12)',
+          animation: 'slide-in-from-right 0.35s cubic-bezier(0.16,1,0.3,1) forwards',
+          overflowY: 'auto',
+        }}
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+      >
+        {/* Panel Header */}
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            padding: '24px 28px 20px',
+            borderBottom: `1px solid ${dividerColor}`,
+            position: 'sticky',
+            top: 0,
+            background: panelBg,
+            zIndex: 2,
+          }}
+        >
+          <h3
+            style={{
+              fontFamily: 'var(--font-title)',
+              fontSize: '1.25rem',
+              fontWeight: '700',
+              color: titleColor,
+              margin: 0,
+            }}
+          >
+            {title}
+          </h3>
+          <button
+            onClick={onClose}
+            id="btn-close-panel"
+            aria-label="Close panel"
+            style={{
+              background: isDark ? 'rgba(255,255,255,0.07)' : '#f3f4f6',
+              border: 'none',
+              color: closeColor,
+              fontSize: '1rem',
+              cursor: 'pointer',
+              padding: '6px 10px',
+              borderRadius: '8px',
+              lineHeight: 1,
+              transition: 'background 0.2s ease',
+            }}
+          >
+            ✕
+          </button>
+        </div>
+
+        {/* Panel Body */}
+        <div style={{ padding: '28px', flex: 1 }}>
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Confirm Modal (centered pop-up, used for delete) ────────────── */
+function ConfirmModal({ title, onClose, children, theme }) {
   const isDark = theme === 'dark';
   const modalBg = isDark ? '#0d101b' : '#ffffff';
   const modalBorder = isDark ? 'var(--border-card)' : '#dddddd';
@@ -710,23 +820,23 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* ── Add Modal ── */}
+      {/* ── Add Slide Panel ── */}
       {showAddModal && (
-        <Modal title="Add New Password" onClose={() => setShowAddModal(false)} theme={theme}>
+        <SlidePanel title="Add New Password" onClose={() => setShowAddModal(false)} theme={theme}>
           <PasswordForm onSubmit={handleCreate} loading={formLoading} theme={theme} />
-        </Modal>
+        </SlidePanel>
       )}
 
-      {/* ── Edit Modal ── */}
+      {/* ── Edit Slide Panel ── */}
       {editEntry && (
-        <Modal title="Edit Password" onClose={() => setEditEntry(null)} theme={theme}>
+        <SlidePanel title="Edit Password" onClose={() => setEditEntry(null)} theme={theme}>
           <PasswordForm initial={editEntry} onSubmit={handleUpdate} loading={formLoading} theme={theme} />
-        </Modal>
+        </SlidePanel>
       )}
 
       {/* ── Delete Confirm Modal ── */}
       {deleteEntry && (
-        <Modal title="Delete Password" onClose={() => setDeleteEntry(null)} theme={theme}>
+        <ConfirmModal title="Delete Password" onClose={() => setDeleteEntry(null)} theme={theme}>
           <p style={{ color: theme === 'dark' ? 'var(--text-secondary)' : '#555555', marginBottom: '24px', fontSize: '0.95rem' }}>
             Are you sure you want to delete the entry for{' '}
             <strong style={{ color: theme === 'dark' ? 'var(--text-primary)' : '#1a1a1a' }}>{deleteEntry.site_name}</strong>? This
@@ -761,7 +871,7 @@ export default function Dashboard() {
               Delete
             </button>
           </div>
-        </Modal>
+        </ConfirmModal>
       )}
     </div>
   );
