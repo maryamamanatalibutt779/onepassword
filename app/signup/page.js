@@ -1,9 +1,11 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 export default function SignupPage() {
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -60,10 +62,10 @@ export default function SignupPage() {
       if (!response.ok) {
         setError(data.error || 'Something went wrong during registration.');
       } else {
-        setSuccess(data.message || 'Registration successful! Check your email to confirm.');
-        setEmail('');
-        setPassword('');
-        setConfirmPassword('');
+        setSuccess('Signup successful! Redirecting to sign in...');
+        setTimeout(() => {
+          router.push('/signin');
+        }, 1500);
       }
     } catch (err) {
       console.error('Signup error:', err);

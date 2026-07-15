@@ -16,8 +16,8 @@ async function getAuthHeader() {
 /* ─── Modal Component ─────────────────────────────────────────────── */
 function Modal({ title, onClose, children, theme }) {
   const isDark = theme === 'dark';
-  const modalBg    = isDark ? '#0d101b' : '#ffffff';
-  const modalBorder= isDark ? 'var(--border-card)' : '#dddddd';
+  const modalBg = isDark ? '#0d101b' : '#ffffff';
+  const modalBorder = isDark ? 'var(--border-card)' : '#dddddd';
   const titleColor = isDark ? '#ffffff' : '#1a1a1a';
   const closeColor = isDark ? 'rgba(255,255,255,0.5)' : '#555555';
 
@@ -112,7 +112,7 @@ function PasswordForm({ initial = {}, onSubmit, loading, theme }) {
             style={getInputStyle(form.site_name)}
           />
         </div>
-        {submitted && !form.site_name && <div style={errStyle}>fill this</div>}
+        {submitted && !form.site_name && <div style={errStyle}>This field is required.</div>}
       </div>
 
       {/* URL (optional) */}
@@ -151,7 +151,7 @@ function PasswordForm({ initial = {}, onSubmit, loading, theme }) {
             style={getInputStyle(form.username)}
           />
         </div>
-        {submitted && !form.username && <div style={errStyle}>fill this</div>}
+        {submitted && !form.username && <div style={errStyle}>This field is required.</div>}
       </div>
 
       {/* Password */}
@@ -191,7 +191,7 @@ function PasswordForm({ initial = {}, onSubmit, loading, theme }) {
             {showPassword ? '🔒' : '👁'}
           </button>
         </div>
-        {submitted && !initial.id && !form.password && <div style={errStyle}>fill this</div>}
+        {submitted && !initial.id && !form.password && <div style={errStyle}>This field is required.</div>}
         {initial.id && (
           <p style={{ fontSize: '0.78rem', color: isDark ? 'var(--text-muted)' : '#999', marginTop: '4px' }}>
             Leave blank to keep the existing password.
@@ -304,12 +304,12 @@ function PasswordCard({ entry, onEdit, onDelete, theme }) {
           </span>
           <button onClick={() => setRevealed((v) => !v)} style={{ ...styles.iconBtn, display: 'flex', alignItems: 'center', lineHeight: 1, color: textMain }} title={revealed ? 'Hide' : 'Reveal'}>
             {revealed ? (
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
                 <circle cx="12" cy="12" r="3" />
               </svg>
             ) : (
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
                 <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
                 <line x1="1" y1="1" x2="23" y2="23" />
@@ -553,26 +553,26 @@ export default function Dashboard() {
             style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}
           >
             <div style={{
-              width: '56px', height: '30px', borderRadius: '999px',
+              width: '44px', height: '24px', borderRadius: '999px',
               background: theme === 'dark' ? '#3b82f6' : '#d1d5db',
               position: 'relative', transition: 'background 0.3s ease', flexShrink: 0,
             }}>
               <div style={{
-                position: 'absolute', top: '3px',
-                left: theme === 'dark' ? '29px' : '3px',
-                width: '24px', height: '24px', borderRadius: '50%',
+                position: 'absolute', top: '2px',
+                left: theme === 'dark' ? '22px' : '2px',
+                width: '20px', height: '20px', borderRadius: '50%',
                 background: theme === 'dark' ? '#ffffff' : '#6b7280',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 transition: 'left 0.3s ease', boxShadow: '0 1px 4px rgba(0,0,0,0.2)',
               }}>
                 {theme === 'dark' ? (
                   /* moon icon shown in dark mode */
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
                     <path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z" />
                   </svg>
                 ) : (
                   /* sun icon shown in light mode */
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2.5" strokeLinecap="round" xmlns="http://www.w3.org/2000/svg">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2.5" strokeLinecap="round" xmlns="http://www.w3.org/2000/svg">
                     <circle cx="12" cy="12" r="4" />
                     <line x1="12" y1="2" x2="12" y2="4" />
                     <line x1="12" y1="20" x2="12" y2="22" />
