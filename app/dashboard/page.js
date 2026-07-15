@@ -610,6 +610,144 @@ function PasswordCard({ entry, onEdit, onDelete, onShare, theme }) {
   );
 }
 
+/* ─── Settings Panel ──────────────────────────────────────────────── */
+function SettingsPanel({ user, theme }) {
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
+  const [factors, setFactors] = useState(user.factors || []);
+  
+  // Enrollment state
+  const [qrCode, setQrCode] = useState(null);
+  const [factorId, setFactorId] = useState(null);
+  const [verifyCode, setVerifyCode] = useState('');
+
+  const isDark = theme === 'dark';
+  const textMain = isDark ? '#ffffff' : '#1a1a1a';
+  const textMuted = isDark ? '#aaaaaa' : '#666666';
+  const bgBox = isDark ? 'rgba(255,255,255,0.06)' : '#f9f9f9';
+  const borderBox = isDark ? 'rgba(255,255,255,0.1)' : '#dddddd';
+
+  const hasMFA = factors.some(f => f.factor_type === 'totp' && f.status === 'verified');
+
+  const handleEnroll = async () => {
+    setLoading(true);
+    setErrorMsg('');
+    setSuccessMsg('');
+    try {
+      const { data, error } = await supabase.auth.mfa.enroll({ factorType: 'totp' });
+      if (error) throw error;
+      setFactorId(data.id);
+      setQrCode(data.totp.qr_code);
+    } catch (err) {
+      setErrorMsg(err.message || 'Failed to start 2FA enrollment.');
+    }
+    setLoading(false);
+  };
+
+  const handleVerify = async (e) => {
+    e.preventDefault();
+    if (!verifyCode) return;
+    setLoading(true);
+    setErrorMsg('');
+    try {
+      const challenge = await supabase.auth.mfa.challenge({ factorId });
+      if (challenge.error) throw challenge.error;
+      const verify = await supabase.auth.mfa.verify({
+        factorId,
+        challengeId: challenge.data.id,
+        code: verifyCode
+      });
+      if (verify.error) throw verify.error;
+      setSuccessMsg('Two-Factor Authentication is now enabled!');
+      setQrCode(null);
+      setVerifyCode('');
+      const { data } = await supabase.auth.getUser();
+      if (data?.user) setFactors(data.user.factors || []);
+    } catch (err) {
+      setErrorMsg(err.message || 'Invalid verification code.');
+    }
+    setLoading(false);
+  };
+
+  const handleUnenroll = async () => {
+    setLoading(true);
+    setErrorMsg('');
+    setSuccessMsg('');
+    try {
+      const totpFactor = factors.find(f => f.factor_type === 'totp');
+      if (!totpFactor) return;
+      const { error } = await supabase.auth.mfa.unenroll({ factorId: totpFactor.id });
+      if (error) throw error;
+      setSuccessMsg('Two-Factor Authentication has been disabled.');
+      const { data } = await supabase.auth.getUser();
+      if (data?.user) setFactors(data.user.factors || []);
+    } catch (err) {
+      setErrorMsg(err.message || 'Failed to disable 2FA.');
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      <div>
+        <h4 style={{ color: textMain, marginBottom: '8px', fontSize: '1.2rem', fontFamily: 'var(--font-title)' }}>Two-Factor Authentication</h4>
+        <p style={{ color: textMuted, fontSize: '0.85rem', lineHeight: 1.5 }}>
+          Add an extra layer of security to your LockBox account by using an authenticator app like Google Authenticator or Authy.
+        </p>
+      </div>
+
+      {errorMsg && <div style={{ color: 'var(--error)', fontSize: '0.85rem', background: 'var(--error-glow)', padding: '12px', borderRadius: '8px' }}>{errorMsg}</div>}
+      {successMsg && <div style={{ color: 'var(--success)', fontSize: '0.85rem', background: 'var(--success-glow)', padding: '12px', borderRadius: '8px' }}>{successMsg}</div>}
+
+      {hasMFA ? (
+        <div style={{ background: bgBox, border: `1px solid ${borderBox}`, padding: '20px', borderRadius: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+            <div style={{ background: 'var(--success-glow)', color: 'var(--success)', padding: '8px', borderRadius: '50%', display: 'flex' }}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+            </div>
+            <div>
+              <h5 style={{ color: textMain, fontSize: '1rem', margin: 0 }}>2FA is Enabled</h5>
+              <span style={{ color: textMuted, fontSize: '0.8rem' }}>Your account is protected.</span>
+            </div>
+          </div>
+          <button onClick={handleUnenroll} disabled={loading} style={{ padding: '10px 16px', borderRadius: '6px', cursor: 'pointer', border: 'none', background: 'var(--error)', color: '#fff', fontSize: '0.85rem', fontWeight: '600' }}>
+            {loading ? 'Disabling...' : 'Disable 2FA'}
+          </button>
+        </div>
+      ) : !qrCode ? (
+        <button onClick={handleEnroll} disabled={loading} className="btn-submit" style={{ width: 'fit-content' }}>
+          {loading ? <span className="spinner" /> : 'Enable 2FA (Authenticator App)'}
+        </button>
+      ) : (
+        <div style={{ background: bgBox, border: `1px solid ${borderBox}`, padding: '24px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <div>
+            <h5 style={{ color: textMain, fontSize: '1rem', marginBottom: '8px' }}>1. Scan this QR Code</h5>
+            <p style={{ color: textMuted, fontSize: '0.85rem' }}>Open your authenticator app and scan the code below.</p>
+          </div>
+          <div style={{ background: '#fff', padding: '16px', borderRadius: '8px', alignSelf: 'center' }} dangerouslySetInnerHTML={{ __html: qrCode }} />
+          <div>
+            <h5 style={{ color: textMain, fontSize: '1rem', marginBottom: '8px' }}>2. Enter Verification Code</h5>
+            <p style={{ color: textMuted, fontSize: '0.85rem', marginBottom: '12px' }}>Type the 6-digit code generated by your app.</p>
+            <form onSubmit={handleVerify} style={{ display: 'flex', gap: '8px' }}>
+              <input
+                type="text"
+                value={verifyCode}
+                onChange={(e) => setVerifyCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                placeholder="000000"
+                style={{ flex: 1, padding: '10px', borderRadius: '6px', border: `1px solid ${borderBox}`, background: isDark ? 'rgba(0,0,0,0.5)' : '#fff', color: textMain, fontSize: '1.2rem', letterSpacing: '4px', textAlign: 'center', fontFamily: 'monospace' }}
+              />
+              <button type="submit" disabled={loading || verifyCode.length !== 6} className="btn-submit" style={{ flex: 'none', width: 'auto' }}>
+                Verify
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ─── Dashboard ───────────────────────────────────────────────────── */
 export default function Dashboard() {
   const router = useRouter();
@@ -619,6 +757,7 @@ export default function Dashboard() {
   const [formLoading, setFormLoading] = useState(false);
 
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [editEntry, setEditEntry] = useState(null);   // entry being edited
   const [deleteEntry, setDeleteEntry] = useState(null); // entry awaiting delete confirm
   const [shareEntry, setShareEntry] = useState(null); // entry being shared
@@ -867,6 +1006,11 @@ export default function Dashboard() {
             </span>
           </button>
 
+          <button onClick={() => setShowSettings(true)} style={{ background: 'transparent', color: textMain, border: 'none', fontSize: '0.85rem', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+            Settings
+          </button>
+
           <button onClick={handleSignOut} style={{ background: 'transparent', color: textMain, border: 'none', fontSize: '0.85rem', fontWeight: '600', cursor: 'pointer' }}>
             Sign Out
           </button>
@@ -1005,6 +1149,13 @@ export default function Dashboard() {
       {shareEntry && (
         <SlidePanel title="Share Password" onClose={() => setShareEntry(null)} theme={theme}>
           <ShareForm entry={shareEntry} theme={theme} />
+        </SlidePanel>
+      )}
+
+      {/* ── Settings Slide Panel ── */}
+      {showSettings && (
+        <SlidePanel title="Settings" onClose={() => setShowSettings(false)} theme={theme}>
+          <SettingsPanel user={user} theme={theme} />
         </SlidePanel>
       )}
 
