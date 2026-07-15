@@ -298,7 +298,18 @@ function PasswordForm({ initial = {}, onSubmit, loading, theme }) {
             }}
             aria-label="Toggle password visibility"
           >
-            {showPassword ? '🔒' : '👁'}
+            {showPassword ? (
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+            ) : (
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
+                <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+                <line x1="1" y1="1" x2="23" y2="23" />
+              </svg>
+            )}
           </button>
         </div>
         {submitted && !initial.id && !form.password && <div style={errStyle}>This field is required.</div>}
@@ -345,8 +356,157 @@ function PasswordForm({ initial = {}, onSubmit, loading, theme }) {
   );
 }
 
+/* ─── Share Form ──────────────────────────────────────────────────── */
+function ShareForm({ entry, theme }) {
+  const [loading, setLoading] = useState(false);
+  const [shareLink, setShareLink] = useState('');
+  const [copied, setCopied] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
+
+  const isDark = theme === 'dark';
+  const textMain = isDark ? '#ffffff' : '#1a1a1a';
+  const textMuted = isDark ? '#aaaaaa' : '#666666';
+  const bgBox = isDark ? 'rgba(255,255,255,0.06)' : '#f9f9f9';
+  const borderBox = isDark ? 'rgba(255,255,255,0.1)' : '#dddddd';
+
+  const generateLink = async () => {
+    setLoading(true);
+    setErrorMsg('');
+    try {
+      const headers = await getAuthHeader();
+      const res = await fetch(`/api/passwords/${entry.id}/share`, {
+        method: 'POST',
+        headers
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setShareLink(`${window.location.origin}/share/${data.token}`);
+      } else {
+        setErrorMsg(data.error || 'Failed to generate link.');
+      }
+    } catch (err) {
+      setErrorMsg('Network error.');
+    }
+    setLoading(false);
+  };
+
+  const revokeLinks = async () => {
+    setLoading(true);
+    setErrorMsg('');
+    try {
+      const headers = await getAuthHeader();
+      const res = await fetch(`/api/passwords/${entry.id}/share`, {
+        method: 'DELETE',
+        headers
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setShareLink('');
+        // Show success maybe? We'll just reset state for now
+      } else {
+        setErrorMsg(data.error || 'Failed to revoke links.');
+      }
+    } catch (err) {
+      setErrorMsg('Network error.');
+    }
+    setLoading(false);
+  };
+
+  const copyLink = async () => {
+    await navigator.clipboard.writeText(shareLink);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      <div>
+        <h4 style={{ color: textMain, marginBottom: '8px' }}>Share {entry.site_name}</h4>
+        <p style={{ color: textMuted, fontSize: '0.85rem', lineHeight: 1.5 }}>
+          Generate a secure link to share these credentials. The link will automatically expire in 24 hours. Anyone with the link can view the password.
+        </p>
+      </div>
+
+      {errorMsg && (
+        <div style={{ color: 'var(--error)', fontSize: '0.85rem', background: 'var(--error-glow)', padding: '12px', borderRadius: '8px' }}>
+          {errorMsg}
+        </div>
+      )}
+
+      {!shareLink ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '8px' }}>
+          <button
+            onClick={generateLink}
+            disabled={loading}
+            className="btn-submit"
+          >
+            {loading ? <span className="spinner" /> : 'Generate Share Link'}
+          </button>
+          <button
+            onClick={revokeLinks}
+            disabled={loading}
+            style={{
+              padding: '12px',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              border: '1px solid rgba(239, 68, 68, 0.2)',
+              background: 'rgba(239, 68, 68, 0.05)',
+              color: 'var(--error)',
+              fontFamily: 'var(--font-title)',
+              fontWeight: '600',
+              transition: 'var(--transition-smooth)'
+            }}
+          >
+            {loading ? <span className="spinner" /> : 'Revoke Existing Links'}
+          </button>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            background: bgBox,
+            border: `1px solid ${borderBox}`,
+            padding: '12px',
+            borderRadius: '8px'
+          }}>
+            <input
+              type="text"
+              value={shareLink}
+              readOnly
+              style={{ flex: 1, background: 'transparent', border: 'none', color: textMain, outline: 'none' }}
+            />
+            <button onClick={copyLink} style={{ ...styles.iconBtn, color: copied ? 'var(--success)' : textMain }} title="Copy">
+              {copied ? 'Copied!' : 'Copy'}
+            </button>
+          </div>
+
+          <button
+            onClick={revokeLinks}
+            disabled={loading}
+            style={{
+              padding: '12px',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              border: 'none',
+              background: 'var(--error)',
+              color: '#ffffff',
+              fontFamily: 'var(--font-title)',
+              fontWeight: '600',
+              transition: 'var(--transition-smooth)'
+            }}
+          >
+            {loading ? <span className="spinner" /> : 'Revoke Active Links'}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ─── Password Card ───────────────────────────────────────────────── */
-function PasswordCard({ entry, onEdit, onDelete, theme }) {
+function PasswordCard({ entry, onEdit, onDelete, onShare, theme }) {
   const [revealed, setRevealed] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -436,9 +596,14 @@ function PasswordCard({ entry, onEdit, onDelete, theme }) {
           <button onClick={() => onDelete(entry)} style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '0.85rem', fontWeight: '600', cursor: 'pointer', padding: '4px' }}>
             Delete
           </button>
-          <button onClick={() => onEdit(entry)} style={{ background: isDark ? '#3b82f6' : '#1a1a1a', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: '6px', fontSize: '0.85rem', fontWeight: '600', cursor: 'pointer' }}>
-            Edit
-          </button>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button onClick={() => onShare(entry)} style={{ background: isDark ? '#1a1a1a' : '#f0f0f0', color: textMain, border: `1px solid ${borderCol}`, padding: '8px 16px', borderRadius: '6px', fontSize: '0.85rem', fontWeight: '600', cursor: 'pointer' }}>
+              Share
+            </button>
+            <button onClick={() => onEdit(entry)} style={{ background: isDark ? '#3b82f6' : '#1a1a1a', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: '6px', fontSize: '0.85rem', fontWeight: '600', cursor: 'pointer' }}>
+              Edit
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -456,6 +621,7 @@ export default function Dashboard() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [editEntry, setEditEntry] = useState(null);   // entry being edited
   const [deleteEntry, setDeleteEntry] = useState(null); // entry awaiting delete confirm
+  const [shareEntry, setShareEntry] = useState(null); // entry being shared
 
   const [statusMsg, setStatusMsg] = useState(null); // { type: 'error'|'success', text }
   const [search, setSearch] = useState('');
@@ -805,6 +971,7 @@ export default function Dashboard() {
                   entry={entry}
                   onEdit={setEditEntry}
                   onDelete={setDeleteEntry}
+                  onShare={setShareEntry}
                   theme={theme}
                 />
               ))}
@@ -831,6 +998,13 @@ export default function Dashboard() {
       {editEntry && (
         <SlidePanel title="Edit Password" onClose={() => setEditEntry(null)} theme={theme}>
           <PasswordForm initial={editEntry} onSubmit={handleUpdate} loading={formLoading} theme={theme} />
+        </SlidePanel>
+      )}
+
+      {/* ── Share Slide Panel ── */}
+      {shareEntry && (
+        <SlidePanel title="Share Password" onClose={() => setShareEntry(null)} theme={theme}>
+          <ShareForm entry={shareEntry} theme={theme} />
         </SlidePanel>
       )}
 

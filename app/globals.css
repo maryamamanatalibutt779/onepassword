@@ -31,6 +31,15 @@
   margin: 0;
 }
 
+/* Hide default browser password reveal icons */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none;
+}
+input[type="password"]::-webkit-credentials-auto-fill-button {
+  display: none;
+}
+
 html,
 body {
   width: 100%;
