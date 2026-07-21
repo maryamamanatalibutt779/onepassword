@@ -24,6 +24,7 @@ function SlidePanel({ title, onClose, children, theme }) {
 
   return (
     <div
+      className="slide-panel-container"
       style={{
         position: 'fixed',
         inset: 0,

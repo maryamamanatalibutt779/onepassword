@@ -2,6 +2,18 @@ import { NextResponse } from 'next/server';
 import { createAuthedClient, getTokenFromRequest } from '@/lib/supabaseWithAuth';
 import { encryptPassword, decryptPassword } from '@/lib/encryption';
 
+// Allow browser extension + any localhost origin to call this API
+const CORS_HEADERS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};
+
+// Handle CORS preflight requests
+export async function OPTIONS() {
+  return new NextResponse(null, { status: 204, headers: CORS_HEADERS });
+}
+
 // GET /api/passwords — list all saved passwords for the logged-in user
 export async function GET(request) {
   try {
@@ -33,12 +45,12 @@ export async function GET(request) {
       updated_at: entry.updated_at,
     }));
 
-    return NextResponse.json({ passwords: decrypted }, { status: 200 });
+    return NextResponse.json({ passwords: decrypted }, { status: 200, headers: CORS_HEADERS });
   } catch (err) {
     console.error('Fetch passwords error:', err);
     return NextResponse.json(
       { error: 'An unexpected error occurred while fetching passwords.' },
-      { status: 500 }
+      { status: 500, headers: CORS_HEADERS }
     );
   }
 }

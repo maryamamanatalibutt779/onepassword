@@ -726,6 +726,12 @@ html:not([data-theme='dark']) [role="dialog"] select.form-input option {
 /* ═══════════════════════════════════════════
    RESPONSIVE DESIGN (MOBILE & TABLET)
 ═══════════════════════════════════════════ */
+@media (max-width: 1024px) {
+  .split-left {
+    flex: 0 0 40%;
+  }
+}
+
 @media (max-width: 768px) {
 
   /* Hide the split-left panel on mobile auth pages */
@@ -762,6 +768,7 @@ html:not([data-theme='dark']) [role="dialog"] select.form-input option {
     white-space: nowrap;
     padding-bottom: 8px;
     -webkit-overflow-scrolling: touch;
+    width: 100%;
   }
 
   .dashboard-search-area {
@@ -777,10 +784,50 @@ html:not([data-theme='dark']) [role="dialog"] select.form-input option {
   .slide-panel {
     width: 100% !important;
     max-width: 100% !important;
+    border-radius: 16px 16px 0 0 !important;
+    animation: slide-up 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+    border-left: none !important;
+  }
+  
+  .slide-panel-container {
+    align-items: flex-end !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-header > div > span:nth-of-type(1) {
+    display: none; /* Hide 'LOCKBOX' text, keep icon */
+  }
+  
+  .dashboard-header button span {
+    display: none; /* Hide 'Light Mode' / 'Dark Mode' text */
+  }
+
+  .split-right {
+    padding: 20px 16px;
+  }
+
+  .form-panel {
+    padding: 0 10px;
+  }
+  
+  .form-heading {
+    font-size: 1.6rem;
   }
 }
 
 /* ── Slide-in panel animation ───────────────────────── */
+@keyframes slide-up {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
 @keyframes slide-in-from-right {
   from {
     transform: translateX(100%);
