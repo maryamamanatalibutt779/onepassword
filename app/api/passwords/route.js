@@ -60,18 +60,23 @@ export async function POST(request) {
   try {
     const token = getTokenFromRequest(request);
     if (!token) {
-      return NextResponse.json({ error: 'Not authenticated.' }, { status: 401 });
+      return NextResponse.json({ error: 'Not authenticated.' }, { status: 401, headers: CORS_HEADERS });
     }
 
     const supabase = createAuthedClient(token);
 
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
-
-    if (userError || !user) {
-      return NextResponse.json({ error: 'Not authenticated.' }, { status: 401 });
+    // Decode the JWT to get the user ID (sub claim)
+    // We rely on PostgREST to validate the JWT signature during the database insert
+    let userId;
+    try {
+      const payloadBase64 = token.split('.')[1];
+      const payloadString = Buffer.from(payloadBase64, 'base64').toString('utf-8');
+      const payload = JSON.parse(payloadString);
+      userId = payload.sub;
+      if (!userId) throw new Error("No sub claim");
+    } catch (err) {
+      console.error("JWT Decode error:", err);
+      return NextResponse.json({ error: 'Not authenticated: Invalid token format' }, { status: 401, headers: CORS_HEADERS });
     }
 
     const { site_name, site_url, username, password, tag } = await request.json();
@@ -79,7 +84,7 @@ export async function POST(request) {
     if (!site_name || !username || !password) {
       return NextResponse.json(
         { error: 'site_name, username, and password are required.' },
-        { status: 400 }
+        { status: 400, headers: CORS_HEADERS }
       );
     }
 
@@ -88,7 +93,7 @@ export async function POST(request) {
     const { data, error } = await supabase
       .from('passwords')
       .insert({
-        user_id: user.id,
+        user_id: userId,
         site_name,
         site_url: site_url || null,
         username,
@@ -100,7 +105,7 @@ export async function POST(request) {
       .single();
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
+      return NextResponse.json({ error: error.message }, { status: 400, headers: CORS_HEADERS });
     }
 
     return NextResponse.json(
@@ -115,13 +120,13 @@ export async function POST(request) {
           created_at: data.created_at,
         },
       },
-      { status: 201 }
+      { status: 201, headers: CORS_HEADERS }
     );
   } catch (err) {
     console.error('Create password error:', err);
     return NextResponse.json(
       { error: 'An unexpected error occurred while saving the password.' },
-      { status: 500 }
+      { status: 500, headers: CORS_HEADERS }
     );
   }
 }

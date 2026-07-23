@@ -1173,7 +1173,7 @@ export default function Dashboard() {
               className="btn-secondary"
               id="btn-cancel-delete"
               onClick={() => setDeleteEntry(null)}
-              style={{ flex: 1, padding: '12px' }}
+              style={{ flex: 1, padding: '12px', color: theme === 'light' ? '#000000' : 'var(--text-primary)' }}
             >
               Cancel
             </button>

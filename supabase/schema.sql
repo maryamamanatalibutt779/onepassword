@@ -31,6 +31,7 @@ drop policy if exists "Users can view their own passwords" on public.passwords;
 create policy "Users can view their own passwords"
   on public.passwords for select
   using (auth.uid() = user_id);
+  
 
 drop policy if exists "Users can insert their own passwords" on public.passwords;
 create policy "Users can insert their own passwords"
